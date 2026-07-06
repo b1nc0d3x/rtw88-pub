@@ -1,0 +1,27 @@
+# build artifacts
+*.o
+*.ko
+*.kld
+*.fwo
+*.d
+
+# generated headers from bsd.kmod.mk
+bus_if.h
+device_if.h
+usb_if.h
+opt_wlan.h
+opt_usb.h
+opt_global.h
+opt_acpi.h
+
+# symlinks
+machine
+x86
+i386
+
+# depend files
+.depend.*
+
+# extracted fw (only .fw.uu source is tracked)
+sys/modules/rtw88-fw/*/rtw88-rtl8821c*fw
+sys/modules/rtw88-fw/*/rtw88-rtl8821ctbl
