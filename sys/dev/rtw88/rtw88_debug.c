@@ -1,6 +1,8 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 debug subsystem.
  *
  * Sysctl umbrella hung off the front-end's per-device tree.  Provides

@@ -1,10 +1,18 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * rtw88 BT/WiFi coexistence subsystem.  Port of Linux `coex.c` -- init
- * path + link-up refresh + LTE coex GNT indirect writes.  Full BT-side
- * state machine (bt_link_info + tdma tables for BT active/idle) is
- * deferred until we run this driver alongside an actual BT stack.
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
+ * rtw88 BT/WiFi coexistence subsystem.  Implements the PTA-init +
+ * link-up refresh + LTE coex GNT indirect-write subset of the chip's
+ * coex protocol.  The full BT-side state machine (bt_link_info + tdma
+ * tables for BT active/idle) is deferred until we run this driver
+ * alongside an actual BT stack.
+ *
+ * The register offsets and H2C sub-command IDs come from the chip's
+ * hardware ABI, shared with Linux upstream rtw88; the code below is
+ * an independent FreeBSD implementation, not a translation of Linux
+ * `coex.c` (which is ~4000 lines to this file's ~300).
  *
  * All register access goes through `rtw_read/write*(rtwdev, ...)` so
  * the same code compiles for USB, PCI, SDIO front-ends and any

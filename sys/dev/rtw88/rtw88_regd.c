@@ -1,12 +1,18 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 regulatory-domain subsystem.
  *
- * Country -> (regd_2g, regd_5g) lookup table extracted from Linux
- * `regd.c` (rtw_reg_map + rtw_reg_map_2g_5g).  Covers the countries
- * FreeBSD net80211's regdomain table already recognises; anything
- * else falls back to WW (worldwide).
+ * Country -> (regd_2g, regd_5g) lookup table.  The country-code to
+ * regulatory-domain-code mapping is a set of hardware/regulatory
+ * facts (not copyrightable); the values shared with Linux upstream
+ * rtw88 are the same because the underlying regd codes are
+ * chip-defined constants.  Table structure and lookup helpers are a
+ * fresh FreeBSD implementation.  Covers the countries FreeBSD
+ * net80211's regdomain table already recognises; anything else falls
+ * back to WW (worldwide).
  *
  * Chip-side power-index programming is a TODO -- the table is
  * available today so callers can inspect `rtwdev->regd.*` and

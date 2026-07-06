@@ -1,6 +1,8 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 LED subsystem, FreeBSD led(9) glue.
  *
  * Registers /dev/led/<device_name> with a callback that writes the

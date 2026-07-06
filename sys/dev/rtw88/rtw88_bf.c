@@ -1,6 +1,8 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 beamforming subsystem.
  *
  * SU beamforming as *bfee* (client receiving steered TX from an AP

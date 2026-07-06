@@ -1,9 +1,11 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * rtw88 EFUSE subsystem.  Ported from the monolithic if_rtw88_usb.c
- * `rtw88_efuse_*` block; converted to the bus/chip-abstract API so
- * future PCI / SDIO chip families reuse the same walker.
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
+ * rtw88 EFUSE subsystem.  Refactored out of the monolithic
+ * if_rtw88_usb.c `rtw88_efuse_*` block into a bus/chip-abstract API
+ * so future PCI / SDIO chip families reuse the same walker.
  *
  * Physical-byte protocol (8821C boot ROM, reused across the family):
  *   1. compose ctrl = (addr << 8) into REG_EFUSE_CTRL, clearing

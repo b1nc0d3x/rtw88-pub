@@ -1,6 +1,8 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 power-save subsystem.
  *
  * Shallow LPS: firmware SET_PWR_MODE H2C toggle between ACTIVE and

@@ -1,12 +1,14 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 debug subsystem.
  *
- * FreeBSD equivalent of Linux `debug.c`'s debugfs entries: exposes a
- * per-device sysctl node `dev.rtw88.N` with children that read/write
+ * Per-device sysctl node `dev.rtw88.N` with children that read/write
  * chip state (MAC, BB, RF register windows; coex/PS/BF/regd state
- * introspection; H2C log counters).
+ * introspection; H2C log counters).  FreeBSD-native — where Linux
+ * rtw88 uses debugfs, this uses sysctl(9).
  *
  * The subsystem is bus-agnostic -- USB/PCI/SDIO front-ends call
  * `rtw88_debug_attach()` once at attach with the softc's sysctl_ctx

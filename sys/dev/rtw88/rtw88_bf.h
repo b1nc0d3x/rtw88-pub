@@ -1,10 +1,12 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 beamforming subsystem.
  *
  * Explicit beamforming (11n / 11ac).  Currently a thin scaffold: the
- * chip-side register writes are ported for the SU (single-user) case
+ * chip-side register writes are wired for the SU (single-user) case
  * on chips where `chip->bf_su_supported` is set, but nothing is
  * actively invoked from the driver's assoc path yet because 8821CU
  * only supports SU as bfee (client role) and the ASUS test AP does

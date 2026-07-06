@@ -1,20 +1,19 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 regulatory-domain subsystem.
  *
- * Linux's rtw88 defers regulatory to cfg80211's regd tables + a
- * mac80211 notifier that programs the chip's per-band regd code
- * before RF transmit power is enabled.
- *
- * FreeBSD net80211 has its own regulatory-domain path (`net80211/
- * ieee80211_regdomain.[ch]`) with a per-country SKU lookup, and
- * ifconfig can set the domain via `ifconfig wlanN regdomain FCC`.
- * This port:
- *   - keeps a per-country table of (regd_2g, regd_5g) values matching
- *     Linux's rtw_regd_table (extract), so any country that
- *     wpa_supplicant configures via `country=US` resolves to the same
- *     chip-side codes Linux would program;
+ * FreeBSD net80211's regulatory-domain path (`net80211/
+ * ieee80211_regdomain.[ch]`) supplies the per-country SKU lookup; the
+ * user changes it via `ifconfig wlanN regdomain FCC`.  This subsystem:
+ *   - keeps a per-country table of (regd_2g, regd_5g) values so any
+ *     country that wpa_supplicant configures via `country=US`
+ *     resolves to the correct chip-side codes (regd codes are
+ *     chip-defined constants; the country -> code mapping is shared
+ *     with Linux upstream because both drivers program the same
+ *     hardware);
  *   - exposes `rtw88_regd_apply()` for the front-end to call when the
  *     user changes country / at initial attach with EFUSE default.
  *

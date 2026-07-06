@@ -1,12 +1,15 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 EFUSE subsystem: read the chip's OTP EFUSE map and expose the
  * per-chip parameters (MAC, xtal cap, RFE option, package type,
  * BT-coex presence) via `rtwdev->efuse`.
  *
  * Chip-specific offsets come from `rtwdev->chip->efuse_*`; the walker
- * itself is chip-agnostic (matches Linux `rtw_dump_logical_efuse_map`).
+ * itself is chip-agnostic (same logical-map layout the chip returns
+ * regardless of host driver).
  */
 
 #ifndef _RTW88_EFUSE_H_

@@ -1,15 +1,18 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 core header: bus/chip-abstract handle used by every subsystem
  * (coex, ps, bf, led, regd, efuse, debug).  Each subsystem takes a
  * `struct rtw88_dev *` and calls through `hci_ops` for register access
  * and `chip` for per-silicon parameters.  A bus-specific attach (USB,
  * PCI, SDIO) supplies both tables + the `priv` back-pointer.
  *
- * Model: Linux drivers/net/wireless/realtek/rtw88/main.h `rtw_dev`.
- * Simplified for the FreeBSD port -- no ieee80211_hw / dev_alloc etc;
- * the caller (per-bus front-end) owns the net80211 side.
+ * The `rtw88_dev` handle is modeled on Linux upstream's `rtw_dev`
+ * (drivers/net/wireless/realtek/rtw88/main.h) but is a fresh FreeBSD
+ * implementation -- no ieee80211_hw / dev_alloc etc; the caller
+ * (per-bus front-end) owns the net80211 side.
  */
 
 #ifndef _RTW88_H_

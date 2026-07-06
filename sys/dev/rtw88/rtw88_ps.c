@@ -1,12 +1,17 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * rtw88 power-save subsystem.  Ports the shallow LPS layer of Linux
- * `ps.c` -- SET_PWR_MODE ACTIVE <-> LPS + awake_interval + smart_ps.
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
+ * rtw88 power-save subsystem.  Implements the shallow LPS layer using
+ * the chip's SET_PWR_MODE H2C protocol: ACTIVE <-> LPS + awake_interval
+ * + smart_ps.  The H2C command format is a hardware protocol shared
+ * with Linux upstream rtw88; the code below is an independent FreeBSD
+ * implementation, not a translation of Linux `ps.c`.
  *
  * Deep-PS (SR / Selective Suspend) is deferred: requires the chip's
  * power-sequence table and pause-tx machinery.  Interface leaves a
- * hook (`rtw88_lps_deep_supported`) so a future port can plug in.
+ * hook (`rtw88_lps_deep_supported`) so it can be added later.
  */
 
 #include <sys/param.h>

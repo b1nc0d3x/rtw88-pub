@@ -1,6 +1,8 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
+ * Copyright (c) 2026 Kyle Crenshaw <b1nc0d3x@gmail.com>
+ *
  * rtw88 BT/WiFi coexistence subsystem.
  *
  * Even WiFi-only dongles (e.g. RTL8821CU with no BT chip on-board) need
@@ -8,11 +10,11 @@
  * TX/RX timing latches off these bits regardless of whether BT
  * firmware is running.
  *
- * This is the FreeBSD port of Linux `drivers/net/wireless/realtek/rtw88/
- * coex.c` -- currently only the init + link_up refresh paths are
- * ported; the full BT-side state machine (bt_link_info + tdma tables
- * for BT active/idle) is deferred.  Chip-specific hook points live in
- * `rtwdev->chip->coex_cfg_init` and `coex_switch_rf_wonly`.
+ * FreeBSD-native implementation of the init + link-up refresh subset
+ * of the chip's coex protocol.  The full BT-side state machine
+ * (bt_link_info + tdma tables for BT active/idle) is deferred.
+ * Chip-specific hook points live in `rtwdev->chip->coex_cfg_init`
+ * and `coex_switch_rf_wonly`.
  */
 
 #ifndef _RTW88_COEX_H_
