@@ -54,6 +54,9 @@
 #include <dev/pci/pcireg.h>
 #include <dev/pci/pcivar.h>
 
+#include "rtw88.h"
+#include "rtw88_efuse.h"
+
 #define	RTW88_VENDOR_REALTEK	0x10ec
 
 #define	RTW88_DEV_8822BE	0xB822
@@ -96,10 +99,14 @@ struct rtw88_pci_softc {
 	int			 msi_count;
 	void			*ih;
 
+	struct mtx		 mtx;
+	struct rtw88_dev	 rtwdev;	/* shared-core handle */
+
 	uint16_t		 vid;
 	uint16_t		 did;
 
 	uint32_t		 sig;	/* SYS_CFG1 snapshot */
+	uint8_t			 mac_str[18];	/* "xx:xx:xx:xx:xx:xx" */
 };
 
 static inline uint32_t
@@ -113,6 +120,110 @@ rtw88_pci_w32(struct rtw88_pci_softc *sc, bus_size_t off, uint32_t val)
 {
 	bus_write_4(sc->bar0, off, val);
 }
+
+/* ------------------------------------------------------------------ */
+/* hci_ops implementation: PCI MMIO access via bus_space.             */
+/* ------------------------------------------------------------------ */
+
+static int
+rtw88_pci_hci_read8(struct rtw88_dev *d, uint32_t addr, uint8_t *val)
+{
+	struct rtw88_pci_softc *sc = d->priv;
+	*val = bus_read_1(sc->bar0, addr);
+	return (0);
+}
+
+static int
+rtw88_pci_hci_read16(struct rtw88_dev *d, uint32_t addr, uint16_t *val)
+{
+	struct rtw88_pci_softc *sc = d->priv;
+	*val = bus_read_2(sc->bar0, addr);
+	return (0);
+}
+
+static int
+rtw88_pci_hci_read32(struct rtw88_dev *d, uint32_t addr, uint32_t *val)
+{
+	struct rtw88_pci_softc *sc = d->priv;
+	*val = bus_read_4(sc->bar0, addr);
+	return (0);
+}
+
+static int
+rtw88_pci_hci_write8(struct rtw88_dev *d, uint32_t addr, uint8_t val)
+{
+	struct rtw88_pci_softc *sc = d->priv;
+	bus_write_1(sc->bar0, addr, val);
+	return (0);
+}
+
+static int
+rtw88_pci_hci_write16(struct rtw88_dev *d, uint32_t addr, uint16_t val)
+{
+	struct rtw88_pci_softc *sc = d->priv;
+	bus_write_2(sc->bar0, addr, val);
+	return (0);
+}
+
+static int
+rtw88_pci_hci_write32(struct rtw88_dev *d, uint32_t addr, uint32_t val)
+{
+	struct rtw88_pci_softc *sc = d->priv;
+	bus_write_4(sc->bar0, addr, val);
+	return (0);
+}
+
+static int
+rtw88_pci_hci_read_region(struct rtw88_dev *d, uint32_t addr, void *buf,
+    uint32_t len)
+{
+	struct rtw88_pci_softc *sc = d->priv;
+	bus_read_region_1(sc->bar0, addr, buf, len);
+	return (0);
+}
+
+static int
+rtw88_pci_hci_write_region(struct rtw88_dev *d, uint32_t addr,
+    const void *buf, uint32_t len)
+{
+	struct rtw88_pci_softc *sc = d->priv;
+	bus_write_region_1(sc->bar0, addr, __DECONST(uint8_t *, buf), len);
+	return (0);
+}
+
+static int
+rtw88_pci_hci_h2c(struct rtw88_dev *d, uint8_t cmd, uint32_t msg,
+    uint32_t msg_ext)
+{
+	/*
+	 * TODO: implement H2C mailbox on PCI.  Same registers as USB
+	 * (REG_HMEBOX/REG_HMETFR) — the USB path's rtw88_h2c_mailbox is
+	 * already register-only, so it will migrate cleanly once we move
+	 * it into the shared core.
+	 */
+	(void)d; (void)cmd; (void)msg; (void)msg_ext;
+	return (EOPNOTSUPP);
+}
+
+static const struct rtw88_hci_ops rtw88_pci_hci_ops = {
+	.read8		= rtw88_pci_hci_read8,
+	.read16		= rtw88_pci_hci_read16,
+	.read32		= rtw88_pci_hci_read32,
+	.write8		= rtw88_pci_hci_write8,
+	.write16	= rtw88_pci_hci_write16,
+	.write32	= rtw88_pci_hci_write32,
+	.read_region	= rtw88_pci_hci_read_region,
+	.write_region	= rtw88_pci_hci_write_region,
+	.h2c		= rtw88_pci_hci_h2c,
+};
+
+/*
+ * TODO: per-chip rtw88_chip_info tables for 8822B/C/8814A live in
+ * separate rtw88_88{22b,22c,14a}.c files once ported.  Until then, the
+ * PCI front-end has no chip table to hand rtw88_dev.chip; subsystem
+ * code that needs chip-specific offsets (EFUSE MAC offset etc.) will
+ * short-circuit on chip == NULL.
+ */
 
 static void
 rtw88_pci_intr(void *arg)
@@ -206,6 +317,21 @@ rtw88_pci_attach(device_t dev)
 	/* Probe signature — proves BAR0 is live. */
 	sc->sig = rtw88_pci_r32(sc, RTW88_REG_SYS_CFG1);
 
+	/*
+	 * Wire the shared-core handle.  This lets rtw88_efuse / _coex /
+	 * _ps / _bf / _led / _regd all work over PCI without a single
+	 * bus-specific #ifdef in their code — they just call
+	 * rtw_read32(rtwdev, ...) which dispatches through hci_ops.
+	 */
+	mtx_init(&sc->mtx, "rtw88_pci", NULL, MTX_DEF);
+	sc->rtwdev.priv		= sc;
+	sc->rtwdev.dev		= dev;
+	sc->rtwdev.ic		= NULL;	/* net80211 attach deferred */
+	sc->rtwdev.mtx		= &sc->mtx;
+	sc->rtwdev.hci_type	= RTW88_HCI_TYPE_PCIE;
+	sc->rtwdev.hci_ops	= &rtw88_pci_hci_ops;
+	sc->rtwdev.chip		= NULL;	/* per-chip table TODO */
+
 	sctx = device_get_sysctl_ctx(dev);
 	stree = device_get_sysctl_tree(dev);
 	SYSCTL_ADD_UINT(sctx, SYSCTL_CHILDREN(stree), OID_AUTO, "sig",
@@ -214,10 +340,12 @@ rtw88_pci_attach(device_t dev)
 	    CTLFLAG_RD, &sc->vid, 0, "PCI vendor");
 	SYSCTL_ADD_U16(sctx, SYSCTL_CHILDREN(stree), OID_AUTO, "did",
 	    CTLFLAG_RD, &sc->did, 0, "PCI device");
+	SYSCTL_ADD_STRING(sctx, SYSCTL_CHILDREN(stree), OID_AUTO, "mac",
+	    CTLFLAG_RD, sc->mac_str, 0, "EFUSE MAC (once chip table lands)");
 
 	device_printf(dev,
-	    "attached %04x:%04x SYS_CFG1=%#x  (skeleton — TX/RX not "
-	    "implemented, needs shared-core refactor)\n",
+	    "attached %04x:%04x SYS_CFG1=%#x hci_ops wired  (skeleton — "
+	    "TX/RX + net80211 pending per-chip tables)\n",
 	    sc->vid, sc->did, sc->sig);
 	return (0);
 
@@ -255,6 +383,8 @@ rtw88_pci_detach(device_t dev)
 		    sc->bar0);
 		sc->bar0 = NULL;
 	}
+	if (mtx_initialized(&sc->mtx))
+		mtx_destroy(&sc->mtx);
 	pci_disable_busmaster(dev);
 	return (0);
 }
