@@ -1,7 +1,7 @@
 # Skeleton PCI front-end for rtw88 — probe/BAR/IRQ only.
 #
 # Run as:
-#   cd /home/b1nc0d3x/rtw88/sys/modules/rtw88-pci
+#   cd sys/modules/rtw88-pci
 #   make SYSDIR=/usr/src/sys
 
 .PATH:	${.CURDIR}/../../dev/rtw88

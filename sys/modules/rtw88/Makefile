@@ -3,7 +3,7 @@
 # consumes the active FreeBSD source tree (SRCTOP defaults to /usr/src
 # when running from /usr/src).  Run as:
 #
-#   cd /home/b1nc0d3x/rtw88/sys/modules/rtw88
+#   cd sys/modules/rtw88
 #   make SYSDIR=/usr/src/sys
 #
 .PATH:	${.CURDIR}/../../dev/rtw88
